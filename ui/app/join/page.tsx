@@ -14,7 +14,7 @@ export default function JoinPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-[560px] animate-rise">
-      <TopBar title="Join Room" onBack={() => router.push('/')} />
+      <TopBar title="Join Room" onBack={() => router.push('/home')} />
       <label className="font-semibold text-xs uppercase tracking-wide text-text-muted mb-2">Your Name</label>
       <input
         className="w-full border-2 border-border rounded-[16px] px-4 py-[15px] text-[17px] font-semibold bg-surface outline-none focus:border-brand transition-[border] text-text placeholder:text-[#c0a392] placeholder:font-medium"

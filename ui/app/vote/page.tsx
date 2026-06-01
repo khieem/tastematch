@@ -13,7 +13,7 @@ export default function VotePage() {
   const [pending, setPending] = useState<VoteType | null>(null);
 
   useEffect(() => {
-    if (!room) router.replace('/');
+    if (!room) router.replace('/home');
   }, [room, router]);
 
   if (!room) return null;

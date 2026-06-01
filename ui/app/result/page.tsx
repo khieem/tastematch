@@ -9,7 +9,7 @@ export default function ResultPage() {
   const { room, myVotes, newRound, reset } = useGame();
 
   useEffect(() => {
-    if (!room) router.replace('/');
+    if (!room) router.replace('/home');
   }, [room, router]);
 
   if (!room) return null;
@@ -38,7 +38,7 @@ export default function ResultPage() {
 
   const onHome = () => {
     reset();
-    router.push('/');
+    router.push('/home');
   };
 
   return (
