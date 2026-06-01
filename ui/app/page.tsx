@@ -1,159 +1,52 @@
 'use client';
 
-import { useState } from 'react';
-import { ITEMS } from './data';
-import { GameState, Player, Vote } from './types';
-import Home from './screens/Home';
-import CreateRoom from './screens/Create';
-import JoinRoom from './screens/Join';
-import Lobby from './screens/Lobby';
-import Swipe from './screens/Swipe';
-import Results from './screens/Results';
+import { useRouter } from 'next/navigation';
+import { useGame } from './providers';
 
-type Screen = 'home' | 'create' | 'join' | 'lobby' | 'vote' | 'result';
+export default function Home() {
+  const router = useRouter();
+  const { setName, setCode, setError } = useGame();
 
-const ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-const AVATARS = ['🦊', '🐼', '🐧', '🦄', '🐸', '🐯', '🦁', '🐨'];
-
-function randId(): string {
-  return Math.random().toString(36).slice(2, 10);
-}
-
-function genCode(): string {
-  let c = '';
-  for (let i = 0; i < 4; i++) c += ALPHA[Math.floor(Math.random() * ALPHA.length)];
-  return c;
-}
-
-function makeRoom(code: string, hostName: string): GameState {
-  const host: Player = {
-    id: randId(),
-    name: hostName.trim().slice(0, 16) || 'You',
-    emoji: AVATARS[Math.floor(Math.random() * AVATARS.length)],
+  const goCreate = () => {
+    setName('');
+    setError('');
+    router.push('/create');
   };
-  return {
-    id: randId(),
-    code,
-    host,
-    players: [host],
-    currentDeck: ITEMS,
-    items: ITEMS,
-    phase: 'lobby',
-    round: 1,
-  };
-}
 
-export default function App() {
-  const [screen, setScreen] = useState<Screen>('home');
-  const [name, setName] = useState('');
-  const [code, setCode] = useState('');
-  const [error, setError] = useState('');
-  const [room, setRoom] = useState<GameState | null>(null);
-  const [myVotes, setMyVotes] = useState<Vote>({});
-
-  const goHome = () => {
-    setScreen('home');
+  const goJoin = () => {
     setName('');
     setCode('');
     setError('');
-    setRoom(null);
-    setMyVotes({});
+    router.push('/join');
   };
 
-  const handleMake = () => {
-    setRoom(makeRoom(genCode(), name));
-    setMyVotes({});
-    setError('');
-    setScreen('lobby');
-  };
-
-  const handleJoin = () => {
-    const c = code.trim().toUpperCase();
-    if (c.length < 4) {
-      setError('Mã phòng gồm 4 ký tự.');
-      return;
-    }
-    // Demo 1 máy: không có server thật nên dựng phòng cục bộ theo mã đã nhập.
-    setRoom(makeRoom(c, name));
-    setMyVotes({});
-    setError('');
-    setScreen('lobby');
-  };
-
-  const handleStart = () => {
-    setMyVotes({});
-    setScreen('vote');
-  };
-
-  const handleVote = (itemId: string, type: 'like' | 'pass' | 'kill') => {
-    const next: Vote = { ...myVotes, [itemId]: type };
-    setMyVotes(next);
-    if (room && Object.keys(next).length >= room.currentDeck.length) {
-      setScreen('result');
-    }
-  };
-
-  const handleNewRound = () => {
-    setMyVotes({});
-    setRoom((prev) => (prev ? { ...prev, round: prev.round + 1 } : prev));
-    setScreen('vote');
-  };
-
-  switch (screen) {
-    case 'create':
-      return (
-        <CreateRoom
-          name={name}
-          setName={setName}
-          error={error}
-          setError={setError}
-          onMake={handleMake}
-          onBack={goHome}
-        />
-      );
-    case 'join':
-      return (
-        <JoinRoom
-          name={name}
-          setName={setName}
-          code={code}
-          setCode={setCode}
-          error={error}
-          setError={setError}
-          onJoin={handleJoin}
-          onBack={goHome}
-        />
-      );
-    case 'lobby':
-      return <Lobby room={room ?? undefined} isHost onStart={handleStart} onBack={goHome} />;
-    case 'vote':
-      return <Swipe room={room ?? undefined} votes={myVotes} onVote={handleVote} />;
-    case 'result':
-      return (
-        <Results
-          room={room ?? undefined}
-          votes={room ? { [room.host.id]: myVotes } : {}}
-          myVotes={myVotes}
-          isHost
-          onNewRound={handleNewRound}
-          onHome={goHome}
-        />
-      );
-    default:
-      return (
-        <Home
-          onCreate={() => {
-            setName('');
-            setError('');
-            setScreen('create');
-          }}
-          onJoin={() => {
-            setName('');
-            setCode('');
-            setError('');
-            setScreen('join');
-          }}
-        />
-      );
-  }
+  return (
+    <div className="flex flex-col flex-1 min-h-[560px] animate-rise justify-center items-center text-center">
+      <div className="flex gap-1.5 text-[46px] mb-1.5">
+        <span className="inline-block animate-bob [filter:drop-shadow(0_8px_14px_rgba(200,40,40,0.25))]" style={{ animationDelay: '0s' }}>🍔</span>
+        <span className="inline-block animate-bob [filter:drop-shadow(0_8px_14px_rgba(200,40,40,0.25))]" style={{ animationDelay: '.3s' }}>🎬</span>
+        <span className="inline-block animate-bob [filter:drop-shadow(0_8px_14px_rgba(200,40,40,0.25))]" style={{ animationDelay: '.6s' }}>✈️</span>
+      </div>
+      <h1 className="font-fraunces font-black text-[54px] leading-[0.95] tracking-[-1.5px] mt-1.5 mb-0.5">
+        Taste<span className="text-[#FF4D2E]">Match</span>
+      </h1>
+      <p className="font-fraunces font-semibold text-[21px] italic text-[#C0265B] m-0 mb-2">Don&apos;t think. Just swipe.</p>
+      <p className="text-[15px] text-[#7a5a4c] max-w-[300px] mx-auto mt-0 mb-[26px] leading-[1.4]">
+        Your group decides in 2 minutes. No arguments. Everyone gets a say.
+      </p>
+      <button
+        onClick={goCreate}
+        className="block w-full text-center text-white rounded-[18px] font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)] border-none"
+      >
+        Create Room
+      </button>
+      <button
+        onClick={goJoin}
+        className="block w-full text-center rounded-[18px] font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-surface text-text shadow-[0_4px_14px_rgba(120,60,40,0.12)] mt-3 border-none"
+      >
+        Join Room
+      </button>
+      <p className="text-text-subtle text-xs tracking-wide mt-[18px]">Private votes · Equal weight · Everyone decides</p>
+    </div>
+  );
 }

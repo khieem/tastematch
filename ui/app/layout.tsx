@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { GameProvider } from "./providers";
 
 export const metadata: Metadata = {
   title: "TasteMatch — Group decisions made easy",
-  description: "Swipe2Dine. Your group decides in 2 minutes.",
+  description: "Your group decides in 2 minutes.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -25,11 +26,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, padding: 0, height: "100%" }}>
-        <div className="tm-root">
-          <div className="tm-bg" />
-          <div className="tm-shell">
-            {children}
+      <body className="m-0 p-0 h-full">
+        <div className="relative w-full min-h-full text-text overflow-hidden">
+          <div
+            className="fixed inset-0 z-0 bg-cream"
+            style={{
+              backgroundImage:
+                "radial-gradient(60% 50% at 20% 0%, rgba(255, 138, 61, 0.32), transparent 70%), radial-gradient(60% 50% at 100% 100%, rgba(255, 77, 46, 0.22), transparent 70%)",
+            }}
+          />
+          <div className="relative z-[1] max-w-[440px] mx-auto min-h-screen flex flex-col px-5 pt-[22px] pb-[calc(26px+env(safe-area-inset-bottom))]">
+            <GameProvider>{children}</GameProvider>
           </div>
         </div>
       </body>

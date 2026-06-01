@@ -15,33 +15,37 @@ The repo has two independent parts:
 
 ## Quick start
 
-You only need the UI to see the app working.
+Run both the UI and the API with one command (installs deps on first run):
 
 ```bash
-cd ui
-npm install        # first time only
-npm run dev        # http://localhost:3000
+./run.sh                  # UI on :3000, API on :8787 — Ctrl+C stops both
+UI_PORT=3001 ./run.sh     # custom UI port
+PORT=9000 ./run.sh        # custom API port
 ```
 
-Other port: `npm run dev -- -p 3001`
+Open http://localhost:3000.
 
 Flow: **Home → Create/Join → Lobby → Start → swipe the deck → Results → New Round / Home**
 
----
+### UI only
 
-## Running the Go server (optional)
+You only need the UI to see the app working (it doesn't call the API yet — see [Roadmap](#roadmap)):
 
-The server compiles and runs, but the UI doesn't connect to it yet.
+```bash
+cd ui
+npm install               # first time only
+npm run dev               # http://localhost:3000  (or: -- -p 3001)
+```
+
+### API only
 
 ```bash
 cd api
-go mod tidy        # downloads deps + writes go.sum
-go run main.go     # ws+http on :8787
+go mod tidy               # first run only — downloads deps + writes go.sum
+go run main.go            # ws+http on :8787
 ```
 
-Visit http://localhost:8787 → `TasteMatch realtime server is running.`
-
-Configure the port with the `PORT` env var (default `8787`). WebSocket message contract is documented in [`api/README.md`](api/README.md).
+Visit http://localhost:8787 → `TasteMatch realtime server is running.` Port is set by the `PORT` env var (default `8787`); the WebSocket message contract is in [`api/README.md`](api/README.md).
 
 ---
 
@@ -49,23 +53,31 @@ Configure the port with the `PORT` env var (default `8787`). WebSocket message c
 
 ```
 tastematch/
+├── run.sh                # dev runner — starts API + UI together
 ├── api/
 │   ├── main.go           # WebSocket server: rooms, voting, host transfer, GC
 │   └── README.md         # WebSocket message protocol
 └── ui/
     └── app/
-        ├── page.tsx      # stateful container — switches between screens
-        ├── layout.tsx    # root shell + viewport meta
-        ├── globals.css   # custom CSS + Tailwind v4 @theme tokens
+        ├── layout.tsx    # root shell + viewport meta, wraps GameProvider
+        ├── providers.tsx # GameProvider + useGame() — shared client state
+        ├── globals.css   # Tailwind v4 @theme tokens + keyframes only
         ├── data.ts       # ITEMS — the deck to vote on
         ├── types.ts      # GameState, Player, Vote
-        ├── screens/      # Home · Create · Join · Lobby · Swipe · Results
+        ├── page.tsx      # /         Home
+        ├── create/       # /create
+        ├── join/         # /join
+        ├── lobby/        # /lobby
+        ├── vote/         # /vote
+        ├── result/       # /result
         └── components/   # Card · TopBar
 ```
 
 ### How the UI works
 
-`app/page.tsx` is a single client component holding all state (`screen`, `name`, `code`, `room`, `myVotes`) and rendering the matching screen. The screen components in `app/screens/` are presentational — they receive props and callbacks. There is **no routing**; navigation is just state changes.
+Standard Next.js **App Router** — each screen is its own route (`/create`, `/join`, `/lobby`, `/vote`, `/result`). Shared state (`name`, `code`, `room`, `myVotes`) lives in a React Context (`app/providers.tsx`, mounted in the layout), so it survives client-side navigation; pages read it via `useGame()` and navigate with `useRouter()`. Routes that need an active room redirect home if there isn't one (e.g. on a hard refresh).
+
+Styling is **Tailwind v4** utility classes throughout. `globals.css` holds only the design tokens (`@theme`) and keyframes — there are no hand-written component classes.
 
 ### Customize the deck
 
