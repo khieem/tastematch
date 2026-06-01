@@ -40,6 +40,7 @@ type Room struct {
 	Votes    map[string]map[string]interface{}
 	Sockets  map[*websocket.Conn]bool
 	mu       sync.RWMutex
+	sendMu   sync.Mutex // serializes all writes to this room's sockets
 }
 
 type PublicRoom struct {
@@ -88,52 +89,65 @@ func generateUID() string {
 func (r *Room) Public() *PublicRoom {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
+
+	// Deep-copy the maps so the snapshot can be marshaled without holding the
+	// lock — otherwise json.Marshal would read maps another goroutine may mutate.
+	members := make(map[string]*Member, len(r.Members))
+	for uid, m := range r.Members {
+		copy := *m
+		members[uid] = &copy
+	}
+	votes := make(map[string]map[string]interface{}, len(r.Votes))
+	for uid, v := range r.Votes {
+		inner := make(map[string]interface{}, len(v))
+		for k, val := range v {
+			inner[k] = val
+		}
+		votes[uid] = inner
+	}
+
 	return &PublicRoom{
 		Code:    r.Code,
 		HostUID: r.HostUID,
 		Status:  r.Status,
-		DeckIDs: r.DeckIDs,
-		Members: r.Members,
-		Votes:   r.Votes,
+		DeckIDs: append([]string(nil), r.DeckIDs...),
+		Members: members,
+		Votes:   votes,
 	}
 }
 
-func (r *Room) Send(ws *websocket.Conn, obj interface{}) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+// writeJSON serializes a single write to one socket against all other writes
+// in the room. gorilla/websocket forbids concurrent writes to a connection.
+func (r *Room) writeJSON(ws *websocket.Conn, obj interface{}) {
+	r.sendMu.Lock()
+	defer r.sendMu.Unlock()
 	if err := ws.WriteJSON(obj); err != nil {
-		log.Printf("send error: %v", err)
+		log.Printf("write error: %v", err)
 	}
 }
 
 func (r *Room) Broadcast(obj interface{}) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
 	data, _ := json.Marshal(obj)
-	for ws := range r.Sockets {
-		go func(w *websocket.Conn) {
-			if err := w.WriteMessage(websocket.TextMessage, data); err != nil {
-				log.Printf("broadcast error: %v", err)
-			}
-		}(ws)
-	}
-}
 
-func (r *Room) OnlineMembers() []*Member {
 	r.mu.RLock()
-	defer r.mu.RUnlock()
-	var online []*Member
-	for _, m := range r.Members {
-		if m.Online {
-			online = append(online, m)
+	sockets := make([]*websocket.Conn, 0, len(r.Sockets))
+	for ws := range r.Sockets {
+		sockets = append(sockets, ws)
+	}
+	r.mu.RUnlock()
+
+	r.sendMu.Lock()
+	defer r.sendMu.Unlock()
+	for _, ws := range sockets {
+		if err := ws.WriteMessage(websocket.TextMessage, data); err != nil {
+			log.Printf("broadcast error: %v", err)
 		}
 	}
-	return online
 }
 
 func (r *Room) RefreshStatus() {
 	r.mu.Lock()
-	defer r.Unlock()
+	defer r.mu.Unlock()
 
 	if r.Status == "voting" {
 		online := 0
@@ -161,7 +175,6 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 	defer ws.Close()
 
 	uid := generateUID()
-	var code *string
 	var room *Room
 
 	// Send hello
@@ -179,7 +192,6 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 		switch msg.Type {
 		case "create":
 			newCode := generateCode()
-			code = &newCode
 			newRoom := &Room{
 				Code:    newCode,
 				HostUID: uid,
@@ -204,7 +216,7 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 			roomsLock.Unlock()
 
 			room = newRoom
-			ws.WriteJSON(Message{Type: "joined", Code: newCode, UID: uid})
+			room.writeJSON(ws, Message{Type: "joined", Code: newCode, UID: uid})
 			room.Broadcast(Message{Type: "room", Room: room.Public()})
 
 		case "join":
@@ -237,11 +249,10 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 				r.Members[uid].Online = true
 			}
 			r.Sockets[ws] = true
-			code = &joinCode
 			r.mu.Unlock()
 
 			room = r
-			ws.WriteJSON(Message{Type: "joined", Code: joinCode, UID: uid})
+			room.writeJSON(ws, Message{Type: "joined", Code: joinCode, UID: uid})
 			room.Broadcast(Message{Type: "room", Room: room.Public()})
 
 		case "start":
@@ -324,8 +335,7 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
-
+	// Go 1.20+ auto-seeds the global rand source; no manual seeding needed.
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8787"

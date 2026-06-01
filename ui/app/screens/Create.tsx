@@ -34,7 +34,7 @@ export default function CreateRoom({
       {error && <div className="text-kill font-semibold text-sm mt-[14px]">{error}</div>}
       <div className="flex-1" />
       <button
-        className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-97 py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)]"
+        className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)] border-none"
         onClick={onMake}
       >
         Create

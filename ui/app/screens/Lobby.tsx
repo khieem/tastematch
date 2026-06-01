@@ -15,7 +15,7 @@ export default function Lobby({ room, isHost = false, onStart = () => {}, onBack
       <div className="scr justify-center items-center text-center">
         <p>No active room. Return home to start.</p>
         <button
-          className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-97 py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)]"
+          className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)] border-none"
           onClick={onBack}
         >
           Go Home
@@ -30,8 +30,8 @@ export default function Lobby({ room, isHost = false, onStart = () => {}, onBack
         <p className="text-xs font-bold uppercase tracking-wide text-text-muted m-0">Room Code</p>
       </div>
       <button
-        className="flex gap-2 justify-center bg-none border-none cursor-pointer mx-0 my-[6px_4px] relative"
-        onClick={() => navigator.clipboard.writeText(room.code)}
+        className="flex gap-2 justify-center bg-none border-none cursor-pointer mx-0 my-[6px_4px] relative font-fraunces font-black text-[46px] text-brand-dark"
+        onClick={() => navigator.clipboard?.writeText(room.code)}
       >
         <span>{room.code}</span>
         <div className="copy-tag">tap to copy</div>
@@ -53,14 +53,14 @@ export default function Lobby({ room, isHost = false, onStart = () => {}, onBack
       </div>
       {isHost && (
         <button
-          className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-97 py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)] mt-6"
+          className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)] mt-6 border-none"
           onClick={onStart}
         >
           Start Voting
         </button>
       )}
       <button
-        className="w-full rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-97 py-4 text-[17px] bg-surface text-text shadow-[0_4px_14px_rgba(120,60,40,0.12)] mt-3"
+        className="w-full rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-surface text-text shadow-[0_4px_14px_rgba(120,60,40,0.12)] mt-3 border-none"
         onClick={onBack}
       >
         Cancel
