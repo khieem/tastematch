@@ -47,6 +47,7 @@ export default function Swipe({ room, votes = {}, onVote = () => {} }: SwipeProp
 
       <div className="stack relative flex-1 min-h-[380px]">
         <Card
+          key={currentItem.id}
           item={currentItem}
           onLike={() => onVote(currentItem.id, 'like')}
           onPass={() => onVote(currentItem.id, 'pass')}
@@ -56,19 +57,19 @@ export default function Swipe({ room, votes = {}, onVote = () => {} }: SwipeProp
 
       <div className="flex justify-center items-center gap-4 mt-[18px]">
         <button
-          className="border-none rounded-full bg-surface cursor-pointer flex items-center justify-center transition-transform active:scale-88 w-[60px] h-[60px] text-2xl text-brand-dark shadow-[0_8px_18px_-6px_rgba(120,60,40,0.35)] disabled:opacity-40 disabled:cursor-default"
+          className="border-none rounded-full bg-surface cursor-pointer flex items-center justify-center transition-transform active:scale-[0.88] w-[60px] h-[60px] text-2xl text-brand-dark shadow-[0_8px_18px_-6px_rgba(120,60,40,0.35)] disabled:opacity-40 disabled:cursor-default"
           onClick={() => onVote(currentItem.id, 'pass')}
         >
           ✕
         </button>
         <button
-          className="border-none rounded-full bg-surface cursor-pointer flex items-center justify-center transition-transform active:scale-88 w-[60px] h-[60px] text-[26px] text-like shadow-[0_8px_18px_-6px_rgba(120,60,40,0.35)] disabled:opacity-40 disabled:cursor-default"
+          className="border-none rounded-full bg-surface cursor-pointer flex items-center justify-center transition-transform active:scale-[0.88] w-[60px] h-[60px] text-[26px] text-like shadow-[0_8px_18px_-6px_rgba(120,60,40,0.35)] disabled:opacity-40 disabled:cursor-default"
           onClick={() => onVote(currentItem.id, 'like')}
         >
           ♥
         </button>
         <button
-          className="border-none rounded-full bg-surface cursor-pointer flex items-center justify-center transition-transform active:scale-88 w-[52px] h-[52px] text-[22px] text-text shadow-[0_8px_18px_-6px_rgba(120,60,40,0.35)] disabled:opacity-40 disabled:cursor-default"
+          className="border-none rounded-full bg-surface cursor-pointer flex items-center justify-center transition-transform active:scale-[0.88] w-[52px] h-[52px] text-[22px] text-text shadow-[0_8px_18px_-6px_rgba(120,60,40,0.35)] disabled:opacity-40 disabled:cursor-default"
           onClick={() => onVote(currentItem.id, 'kill')}
         >
           💀

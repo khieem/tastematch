@@ -11,13 +11,13 @@ type ResultsProps = {
   onHome?: () => void;
 };
 
-export default function Results({ room, votes = {}, myVotes = {}, isHost = false, onNewRound = () => {}, onHome = () => {} }: ResultsProps) {
+export default function Results({ room, votes = {}, isHost = false, onNewRound = () => {}, onHome = () => {} }: ResultsProps) {
   if (!room) {
     return (
       <div className="scr justify-center items-center text-center">
         <p>No results available yet.</p>
         <button
-          className="w-full rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-97 py-4 text-[17px] bg-surface text-text shadow-[0_4px_14px_rgba(120,60,40,0.12)] mt-3"
+          className="w-full rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-surface text-text shadow-[0_4px_14px_rgba(120,60,40,0.12)] mt-3 border-none"
           onClick={onHome}
         >
           Go Home
@@ -40,18 +40,21 @@ export default function Results({ room, votes = {}, myVotes = {}, isHost = false
     return { item, likes, kills };
   });
 
-  const ranked = itemScores.sort((a, b) => b.likes - a.likes);
-  const killed = itemScores.filter((s) => s.kills > (s.likes || 0));
-  const winner = ranked[0];
+  const ranked = [...itemScores].sort((a, b) => b.likes - a.likes);
+  const killed = itemScores.filter((s) => s.kills > s.likes);
+  const topScore = ranked[0];
+  const winner = topScore && topScore.likes > 0 ? topScore : null;
 
   return (
     <div className="scr justify-start">
       <div className="text-center mb-[18px]">
         <p className="text-xs font-bold uppercase tracking-wide text-text-muted">Results</p>
-        <h2 className="font-fraunces font-black text-[30px] mt-1.5 leading-tight">The Winner Is...</h2>
+        <h2 className="font-fraunces font-black text-[30px] mt-1.5 leading-tight">
+          {winner ? 'The Winner Is...' : 'No clear winner'}
+        </h2>
       </div>
 
-      {winner && (
+      {winner ? (
         <div
           className="winner"
           style={{
@@ -62,6 +65,8 @@ export default function Results({ room, votes = {}, myVotes = {}, isHost = false
           <h3>{winner.item.name}</h3>
           <p className="font-semibold text-sm opacity-96">♥ {winner.likes} votes</p>
         </div>
+      ) : (
+        <p className="text-center text-text-muted">Nobody liked anything — try another round!</p>
       )}
 
       <div className="flex flex-col gap-2 mt-4">
@@ -90,14 +95,14 @@ export default function Results({ room, votes = {}, myVotes = {}, isHost = false
 
       {isHost && (
         <button
-          className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-97 py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)] mt-6"
+          className="w-full text-white rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-gradient-to-r from-brand to-brand-dark shadow-[0_12px_26px_-8px_rgba(255,46,99,0.6)] mt-6 border-none"
           onClick={onNewRound}
         >
           New Round
         </button>
       )}
       <button
-        className="w-full rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-97 py-4 text-[17px] bg-surface text-text shadow-[0_4px_14px_rgba(120,60,40,0.12)] mt-3"
+        className="w-full rounded-[18px] font-outfit font-bold cursor-pointer transition-transform active:scale-[0.97] py-4 text-[17px] bg-surface text-text shadow-[0_4px_14px_rgba(120,60,40,0.12)] mt-3 border-none"
         onClick={onHome}
       >
         Go Home

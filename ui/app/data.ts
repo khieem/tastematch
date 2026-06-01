@@ -90,9 +90,3 @@ export const ITEMS: Item[] = [
     tags: ['Thai', 'Spicy'],
   },
 ];
-
-export const PRESETS = [
-  { id: 'all', label: 'All Restaurants' },
-  { id: 'casual', label: 'Casual Dining' },
-  { id: 'upscale', label: 'Upscale' },
-];
